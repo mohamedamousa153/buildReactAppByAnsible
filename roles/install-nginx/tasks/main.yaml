@@ -1,0 +1,18 @@
+- name: copy frontend folder
+  copy:
+    src: /home/mousa/test-project/frontend/
+    dest: /var/www/html/
+
+- name: install packages and build application
+  shell: |
+    cd /var/www/html/
+    npm install
+    npm run build
+
+- name: change files ownership and permissions
+  file:
+    path: /var/www/html
+    owner: www-data
+    group: www-data
+    recurse: yes
+    mode: '0755'

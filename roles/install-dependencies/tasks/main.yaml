@@ -1,0 +1,57 @@
+---
+  - name: Update package cache
+    apt:
+      update_cache: yes
+
+  # use apt module to install nginx package
+  - name: Install Nginx package
+    apt:
+      name: nginx
+      state: present
+
+  #create a loop to install nodejs and npm packages
+  - name: Install nodejs and npm
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - nodejs
+      - npm
+
+  - name: update node version
+    shell: |
+      npm i -g n
+      n 20.8.1
+      hash -r
+
+  - name: Start Nginx service
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+
+  - name: Remove symbolic link to disable Nginx configuration
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+    notify: restart nginx
+  
+  - name: copy nginx configuration to the remote server
+    copy:
+      src: nginx.conf
+      dest: /etc/nginx/sites-available/nginx.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: Restart Nginx
+
+
+  - name: enable nginx configuration
+    file:
+      src: /etc/nginx/sites-available/nginx.conf
+      dest: /etc/nginx/sites-enabled/nginx.conf
+      state: link
+    notify: Restart Nginx
+
+
+  
